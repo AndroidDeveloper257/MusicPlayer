@@ -26,7 +26,6 @@ interface MusicDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addPlaylist(playlist: PlaylistEntity)
 
-    // TODO: add songs to playlist
     @Transaction
     suspend fun addSongsToPlaylist(playlistId: Long, songIds: List<Long>) {
         val crossRefs = songIds.map { songId ->
