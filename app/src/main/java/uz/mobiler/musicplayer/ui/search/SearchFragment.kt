@@ -1,4 +1,4 @@
-package uz.mobiler.musicplayer.ui
+package uz.mobiler.musicplayer.ui.search
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -6,11 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import uz.mobiler.musicplayer.R
 import uz.mobiler.musicplayer.databinding.FragmentSearchBinding
 import uz.mobiler.musicplayer.utils.ConstValues.NAVIGATION_ARGUMENT_KEY
 import uz.mobiler.musicplayer.utils.NavigationOptions
 
+@AndroidEntryPoint
 class SearchFragment : Fragment() {
 
     private var _binding: FragmentSearchBinding? = null

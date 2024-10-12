@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.PlaylistSongsFragment">
+    tools:context=".ui.playlistsongs.PlaylistSongsFragment">
 
     <TextView
         android:layout_width="match_parent"

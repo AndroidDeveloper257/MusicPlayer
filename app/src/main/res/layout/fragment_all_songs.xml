@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.AllSongsFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.all.AllSongsFragment">
 
-    <TextView
-        android:id="@+id/tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:padding="20dp"
-        android:text="All songs" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/all_songs_rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
