@@ -3,6 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginHorizontal="10dp"
+    android:layout_marginVertical="5dp"
     android:background="@color/blue">
 
     <com.google.android.material.imageview.ShapeableImageView
@@ -30,7 +32,6 @@
         android:marqueeRepeatLimit="marquee_forever"
         android:scrollHorizontally="true"
         android:singleLine="true"
-        android:text="test"
         android:textColor="@color/white"
         android:textSize="18sp"
         app:layout_constraintLeft_toRightOf="@id/song_image"
@@ -49,7 +50,6 @@
         android:marqueeRepeatLimit="marquee_forever"
         android:scrollHorizontally="true"
         android:singleLine="true"
-        android:text="test"
         android:textColor="@color/white"
         android:textSize="16sp"
         app:layout_constraintLeft_toRightOf="@id/song_image"

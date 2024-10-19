@@ -16,6 +16,12 @@ class DatabaseModule {
 
     @Provides
     @Singleton
+    fun provideContext(
+        @ApplicationContext context: Context
+    ) = context
+
+    @Provides
+    @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context
     ): MusicPlayerDatabase {
@@ -30,14 +36,26 @@ class DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideMusicDao(
+    fun provideFavoriteSongDao(
         database: MusicPlayerDatabase
-    ) = database.musicDao()
+    ) = database.favoriteSongDao()
 
     @Provides
     @Singleton
-    fun provideContext(
-        @ApplicationContext context: Context
-    ) = context
+    fun providePlaylistDao(
+        database: MusicPlayerDatabase
+    ) = database.playlistDao()
+
+    @Provides
+    @Singleton
+    fun provideRecentSongDao(
+        database: MusicPlayerDatabase
+    ) = database.recentSongDao()
+
+    @Provides
+    @Singleton
+    fun provideSongDao(
+        database: MusicPlayerDatabase
+    ) = database.songDao()
 
 }

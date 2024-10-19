@@ -23,32 +23,7 @@ class PlayerFragment : Fragment() {
         _binding = FragmentPlayerBinding.inflate(layoutInflater)
         binding.apply {
 
-            val argument = arguments?.getInt(NAVIGATION_ARGUMENT_KEY) ?: 0
-            when (argument) {
-                NavigationOptions.HOME.value -> {
-                    tv.text = "Came from home\nSongs will come from storage"
-                }
 
-                NavigationOptions.SEARCH.value -> {
-                    tv.text = "Came from search\nSongs will come from storage by search key"
-                }
-
-                NavigationOptions.FAVORITE.value -> {
-                    tv.text = "Came from favorite\nFavorite songs come from room"
-                }
-
-                NavigationOptions.PLAYLIST.value -> {
-                    tv.text = "Came from playlist\nPlaylist songs come from room by playlist id"
-                    arguments?.getInt("playlist_id")
-                    arguments?.getInt("position")
-                }
-
-                NavigationOptions.RECENT.value -> {
-                    tv.text = "Came from recent\nRecent songs"
-                }
-
-                else -> {}
-            }
 
 
             return root

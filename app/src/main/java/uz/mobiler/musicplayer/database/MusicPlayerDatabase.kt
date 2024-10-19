@@ -2,7 +2,10 @@ package uz.mobiler.musicplayer.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import uz.mobiler.musicplayer.database.dao.MusicDao
+import uz.mobiler.musicplayer.database.dao.FavoriteSongDao
+import uz.mobiler.musicplayer.database.dao.PlaylistDao
+import uz.mobiler.musicplayer.database.dao.RecentSongDao
+import uz.mobiler.musicplayer.database.dao.SongDao
 import uz.mobiler.musicplayer.database.entity.FavoriteSongEntity
 import uz.mobiler.musicplayer.database.entity.PlaylistEntity
 import uz.mobiler.musicplayer.database.entity.PlaylistSongCrossRef
@@ -20,6 +23,9 @@ import uz.mobiler.musicplayer.database.entity.SongEntity
 )
 abstract class MusicPlayerDatabase : RoomDatabase() {
 
-    abstract fun musicDao(): MusicDao
+    abstract fun favoriteSongDao(): FavoriteSongDao
+    abstract fun playlistDao(): PlaylistDao
+    abstract fun recentSongDao(): RecentSongDao
+    abstract fun songDao(): SongDao
 
 }

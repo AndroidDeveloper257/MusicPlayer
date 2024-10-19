@@ -60,4 +60,10 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     commonAnnotationProcessors(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.glide)
+    implementation(libs.exoplayer)
+    implementation(libs.exoplayer.extension.mediasession)
+    implementation(libs.androidx.media)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
 }
