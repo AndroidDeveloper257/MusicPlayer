@@ -8,11 +8,13 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -24,6 +26,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import uz.mobiler.musicplayer.MainActivity
 import uz.mobiler.musicplayer.R
 import uz.mobiler.musicplayer.models.Song
+import uz.mobiler.musicplayer.repository.SongRepository
+import uz.mobiler.musicplayer.utils.ConstValues.NAVIGATION_OPTION
+import uz.mobiler.musicplayer.utils.ConstValues.SONG_EXTRA
+import uz.mobiler.musicplayer.utils.ConstValues.TAG
+import uz.mobiler.musicplayer.utils.NavigationOptions
+import java.io.FileNotFoundException
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -40,6 +48,9 @@ class MusicService : Service() {
     }
 
     @Inject
+    lateinit var songRepository: SongRepository
+
+    @Inject
     lateinit var exoPlayer: ExoPlayer
 
     private lateinit var mediaSession: MediaSessionCompat
@@ -47,6 +58,11 @@ class MusicService : Service() {
     private lateinit var notificationManager: NotificationManagerCompat
 
     private val binder = MusicServiceBinder()
+    private var currentSongIndex: Int = 0 // Track the current song index
+    private var currentSong: Song? = null // Track the current song
+    private var songList: List<Song> = listOf() // List of songs to play
+
+    private var isFirstTime = true
 
     inner class MusicServiceBinder : Binder() {
         fun getService(): MusicService = this@MusicService
@@ -56,7 +72,6 @@ class MusicService : Service() {
         super.onCreate()
         initializeMediaSession()
         initializePlayer()
-        initializeNotification()
     }
 
     private fun initializeMediaSession() {
@@ -90,8 +105,21 @@ class MusicService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val currentSong = getCurrentSong()
         val isPlaying = exoPlayer.isPlaying
+
+        Log.d(
+            TAG,
+            "Creating notification for song: ${currentSong?.title}, Artist: ${currentSong?.artist}"
+        )
+
+        val albumArtBitmap = currentSong?.albumArtUri?.let { uri ->
+            try {
+                BitmapFactory.decodeStream(contentResolver.openInputStream(Uri.parse(uri)))
+            } catch (e: FileNotFoundException) {
+                // Handle the missing album art (e.g., set a default image)
+                null // Or set a default bitmap here
+            }
+        }
 
         val playPauseIcon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
         val playPauseAction = NotificationCompat.Action.Builder(
@@ -101,14 +129,19 @@ class MusicService : Service() {
         ).build()
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID).apply {
-            setContentTitle(currentSong?.title)
-            setContentText(currentSong?.artist)
+            setContentTitle(currentSong?.title ?: "Unknown Title") // Fallback if title is null
+            setContentText(currentSong?.artist ?: "Unknown Artist") // Fallback if artist is null
             setSmallIcon(R.drawable.ic_launcher_foreground)
             setContentIntent(createContentIntent())
             setOngoing(isPlaying)
             addAction(R.drawable.ic_previous, "Previous", getActionPendingIntent(ACTION_PREVIOUS))
             addAction(playPauseAction)
             addAction(R.drawable.ic_next, "Next", getActionPendingIntent(ACTION_NEXT))
+
+            albumArtBitmap?.let { bitmap ->
+                setLargeIcon(bitmap) // Set album art if available
+            }
+
             setStyle(
                 androidx.media.app.NotificationCompat.MediaStyle()
                     .setMediaSession(mediaSession.sessionToken)
@@ -134,6 +167,7 @@ class MusicService : Service() {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
+        Log.d(TAG, "updateNotification: notification updating")
         notificationManager.notify(NOTIFICATION_ID, createNotification())
     }
 
@@ -142,23 +176,66 @@ class MusicService : Service() {
             action = Intent.ACTION_MAIN
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
-        return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        return PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private fun getActionPendingIntent(action: String): PendingIntent {
-        val intent = Intent(this, MainActivity::class.java).apply {
+        val intent = Intent(this, MusicService::class.java).apply {
             this.action = action
         }
-        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        return PendingIntent.getService(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand: ")
         when (intent?.action) {
-            ACTION_PLAY -> exoPlayer.play()
-            ACTION_PAUSE -> exoPlayer.pause()
-            ACTION_NEXT -> playNextSong()
-            ACTION_PREVIOUS -> playPreviousSong()
-            ACTION_STOP -> stopSelf()
+            ACTION_PLAY -> {
+                if (currentSong == null) {
+                    currentSong = intent.getParcelableExtra(SONG_EXTRA)
+                    initializeSongList(intent.getStringExtra(NAVIGATION_OPTION))
+                    initializeNotification()
+                }
+                Log.d(TAG, "onStartCommand: currentSongIndex $currentSongIndex")
+                Log.d(
+                    TAG,
+                    "onStartCommand: songList.indexOf(currentSong) ${songList.indexOf(currentSong)}"
+                )
+                Log.d(TAG, "onStartCommand: ${currentSongIndex != songList.indexOf(currentSong)}")
+                if (isFirstTime) {
+                    isFirstTime = false
+                    playSong(currentSong!!)
+                } else {
+                    if (!exoPlayer.isPlaying) {
+                        exoPlayer.play()
+                    }
+                }
+            }
+
+            ACTION_PAUSE -> {
+                exoPlayer.pause()
+            }
+
+            ACTION_NEXT -> {
+                playNextSong()
+            }
+
+            ACTION_PREVIOUS -> {
+                playPreviousSong()
+            }
+
+            ACTION_STOP -> {
+                stopSelf()
+            }
             else -> {
                 val song: Song? = intent?.getParcelableExtra("song")
                 song?.let { playSong(it) }
@@ -167,7 +244,41 @@ class MusicService : Service() {
         return START_STICKY
     }
 
+    private fun initializeSongList(
+        navigationOption: String?,
+        playlistId: Long? = null,
+        searchQuery: String? = null
+    ) {
+        when (navigationOption.toString()) {
+            NavigationOptions.HOME.navigationName -> {
+                songList = songRepository.getAllSongs()
+            }
+
+            NavigationOptions.FAVORITE.navigationName -> {
+                songList = songRepository.getFavoriteSongs()
+            }
+
+            NavigationOptions.RECENT.navigationName -> {
+                songList = songRepository.getRecentSongs()
+            }
+
+            NavigationOptions.PLAYLIST.navigationName -> {
+                songList = songRepository.getPlaylistSongs(playlistId ?: 0)
+            }
+
+            NavigationOptions.SEARCH.navigationName -> {
+                songList = songRepository.search(searchQuery.toString())
+            }
+
+            else -> {
+                songList = emptyList()
+            }
+        }
+    }
+
     private fun playSong(song: Song) {
+        currentSongIndex = songList.indexOf(song)
+        currentSong = song
         exoPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(song.filePath)))
         exoPlayer.prepare()
         exoPlayer.play()
@@ -175,15 +286,11 @@ class MusicService : Service() {
     }
 
     private fun playNextSong() {
-
+        playSong(songList[(currentSongIndex + 1) % songList.size])
     }
 
     private fun playPreviousSong() {
-
-    }
-
-    private fun getCurrentSong(): Song? {
-        return null
+        playSong(songList[(currentSongIndex - 1 + songList.size) % songList.size])
     }
 
     private val playerListener = object : Player.Listener {
@@ -192,7 +299,6 @@ class MusicService : Service() {
                 Player.STATE_READY -> {
                     updateNotification()
                 }
-
                 Player.STATE_ENDED -> {
                     playNextSong()
                 }
@@ -214,5 +320,4 @@ class MusicService : Service() {
         exoPlayer.release()
         mediaSession.release()
     }
-
 }

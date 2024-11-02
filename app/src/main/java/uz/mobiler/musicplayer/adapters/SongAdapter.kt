@@ -1,11 +1,17 @@
 package uz.mobiler.musicplayer.adapters
 
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import uz.mobiler.musicplayer.R
 import uz.mobiler.musicplayer.databinding.SongItemBinding
 import uz.mobiler.musicplayer.models.Song
+import uz.mobiler.musicplayer.utils.ConstValues.TAG
 
 class SongAdapter(
     private val songList: List<Song>,
@@ -19,6 +25,14 @@ class SongAdapter(
         @SuppressLint("SetTextI18n")
         fun bind(song: Song) {
             binding.apply {
+//                song.albumArtUri?.let {
+//                    try {
+//                        val bitmap = BitmapFactory.decodeStream(binding.root.context.contentResolver.openInputStream(Uri.parse(it)))
+//                        binding.songImage.setImageBitmap(bitmap)
+//                    } catch (e: Exception) {
+//                        binding.songImage.setImageResource(R.drawable.ic_music)
+//                    }
+//                }
                 songTitleTv.isSelected = true
                 artistAlbumNameTv.isSelected = true
                 songTitleTv.text = song.title

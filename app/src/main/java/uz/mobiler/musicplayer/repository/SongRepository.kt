@@ -38,13 +38,14 @@ class SongRepository @Inject constructor(
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.DATA,
             MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.DATE_ADDED
         )
         context.contentResolver.query(
             uri,
             projection,
             null,
             null,
-            null
+            "${MediaStore.Audio.Media.DATE_ADDED} DESC"
         )?.use { cursor ->
             val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
@@ -207,6 +208,14 @@ class SongRepository @Inject constructor(
 
     private fun getSongId(song: Song): Long {
         return songDao.getSongByFilePath(song.filePath)?.id ?: songDao.insertSong(song.toEntity())
+    }
+
+    fun search(searchQuery: String): List<Song> {
+        return getAllSongs().filter { song ->
+            song.title.contains(searchQuery, ignoreCase = true) ||
+                    song.artist.toString().contains(searchQuery, ignoreCase = true) ||
+                    song.album.toString().contains(searchQuery, ignoreCase = true)
+        }
     }
 
 }
