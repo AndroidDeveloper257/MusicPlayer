@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import uz.mobiler.musicplayer.models.Song
 import uz.mobiler.musicplayer.repository.SongRepository
+import uz.mobiler.musicplayer.utils.NavigationOptions
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,6 +24,36 @@ class PlayerViewModel @Inject constructor(
 
     private val _isPlaying = MutableLiveData<Boolean>()
     val isPlaying get() = _isPlaying
+
+    fun initializeSongList(
+        navigationOption: String,
+        searchQuery: String? = null,
+        playlistId: Long? = null
+    ) {
+        when (navigationOption) {
+            NavigationOptions.HOME.navigationName -> {
+                _songList.value = songRepository.getAllSongs()
+            }
+
+            NavigationOptions.FAVORITE.navigationName -> {
+                _songList.value = songRepository.getFavoriteSongs()
+            }
+
+            NavigationOptions.RECENT.navigationName -> {
+                _songList.value = songRepository.getRecentSongs()
+            }
+
+            NavigationOptions.PLAYLIST.navigationName -> {
+                _songList.value = songRepository.getPlaylistSongs(playlistId!!)
+            }
+
+            NavigationOptions.SEARCH.navigationName -> {
+                _songList.value = songRepository.search(searchQuery!!)
+            }
+
+            else -> {}
+        }
+    }
 
     fun setCurrentSong(song: Song) {
         _currentSong.value = song
@@ -61,6 +92,13 @@ class PlayerViewModel @Inject constructor(
 
     fun pauseSong() {
         _isPlaying.value = false
+    }
+
+    fun convertTime(time: Long): String {
+        val totalSeconds = time / 1000
+        val minutes = (totalSeconds / 60).toString()
+        val seconds = (totalSeconds % 60).toString()
+        return "${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}"
     }
 
 }

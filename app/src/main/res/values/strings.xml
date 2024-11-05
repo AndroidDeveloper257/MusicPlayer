@@ -17,4 +17,5 @@
     <string name="permission_explanation">In order to let this app to play songs you should grant permission to access storage on your device</string>
     <string name="grant_access">Grant access</string>
     <string name="search_hint">Search for songs on device</string>
+    <string name="content_description">Content description for ImageView</string>
 </resources>

@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.MusicPlayer" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
@@ -16,8 +16,9 @@
         <item name="android:background">@drawable/search_view_background</item>
         <item name="android:queryHint">@string/search_hint</item>
         <item name="iconifiedByDefault">false</item>
-        <item name="queryBackground">@android:color/transparent</item>
+        <item name="android:queryBackground">@android:color/transparent</item>
         <item name="android:textColorHint">@color/white</item>
+        <item name="searchIcon">@drawable/ic_search</item>
         <item name="android:editTextColor">@color/white</item>
         <item name="defaultQueryHint">@string/search_hint</item>
     </style>

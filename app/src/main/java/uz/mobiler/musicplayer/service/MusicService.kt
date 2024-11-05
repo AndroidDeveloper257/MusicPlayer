@@ -18,6 +18,8 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
@@ -63,6 +65,12 @@ class MusicService : Service() {
     private var songList: List<Song> = listOf() // List of songs to play
 
     private var isFirstTime = true
+
+    private val _currentPosition = MutableLiveData<Long>()
+    val currentPosition: LiveData<Long> get() = _currentPosition
+
+    private val _duration = MutableLiveData<Long>()
+    val duration: LiveData<Long> get() = _duration
 
     inner class MusicServiceBinder : Binder() {
         fun getService(): MusicService = this@MusicService

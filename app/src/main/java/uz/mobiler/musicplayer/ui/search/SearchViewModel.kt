@@ -15,6 +15,10 @@ class SearchViewModel @Inject constructor(
     private val _searchResult = MutableLiveData<List<Song>>()
     val searchResult get() = _searchResult
 
+    init {
+        search("")
+    }
+
     fun search(searchQuery: String) {
         _searchResult.value = songRepository.search(searchQuery)
     }
