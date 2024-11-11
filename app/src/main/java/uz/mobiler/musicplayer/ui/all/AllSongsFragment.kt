@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +26,7 @@ import uz.mobiler.musicplayer.models.Song
 import uz.mobiler.musicplayer.service.MusicService
 import uz.mobiler.musicplayer.utils.ConstValues.NAVIGATION_OPTION
 import uz.mobiler.musicplayer.utils.ConstValues.SONG_EXTRA
+import uz.mobiler.musicplayer.utils.ConstValues.TAG
 import uz.mobiler.musicplayer.utils.NavigationOptions
 
 @AndroidEntryPoint
@@ -44,12 +46,43 @@ class AllSongsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAllSongsBinding.inflate(layoutInflater)
-        return binding.root
+        binding.apply {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                100
+            )
+            requestPermissionLauncher =
+                registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                    Log.d(
+                        TAG,
+                        "onViewCreated: result from requestPermissionLauncher isGranted -> $isGranted"
+                    )
+                    if (isGranted) {
+                        allSongsViewModel.getAllSongs()
+                        permissionExplanationBtn.visibility = View.GONE
+                        permissionExplanationTv.visibility = View.GONE
+                    } else {
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                                requireActivity(),
+                                Manifest.permission.READ_EXTERNAL_STORAGE
+                            )
+                        ) {
+                            showRationaleDialog()
+                        } else {
+                            showSettingsDialog()
+                        }
+                    }
+                }
+            return root
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.apply {
             allSongsViewModel.allSongs.observe(viewLifecycleOwner) { songList ->
+                Log.d(TAG, "onViewCreated: ${songList.size} songs found")
+                Log.d(TAG, "onViewCreated: $songList")
                 songAdapter = SongAdapter(
                     songList = songList,
                     { song ->
@@ -68,25 +101,6 @@ class AllSongsFragment : Fragment() {
                     emptyTv.visibility = View.GONE
                 }
             }
-
-            requestPermissionLauncher =
-                registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-                    if (isGranted) {
-                        allSongsViewModel.getAllSongs()
-                        permissionExplanationBtn.visibility = View.GONE
-                        permissionExplanationTv.visibility = View.GONE
-                    } else {
-                        if (ActivityCompat.shouldShowRequestPermissionRationale(
-                                requireActivity(),
-                                Manifest.permission.READ_EXTERNAL_STORAGE
-                            )
-                        ) {
-                            showRationaleDialog()
-                        } else {
-                            showSettingsDialog()
-                        }
-                    }
-                }
             checkPermissions()
         }
     }
@@ -117,6 +131,7 @@ class AllSongsFragment : Fragment() {
     }
 
     private fun showRationaleDialog() {
+        Log.d(TAG, "showRationaleDialog: show rationale dialog")
         AlertDialog.Builder(requireContext())
             .setTitle(resources.getString(R.string.permission_rationale_title))
             .setMessage(resources.getString(R.string.permission_rationale_body))
@@ -132,6 +147,7 @@ class AllSongsFragment : Fragment() {
     }
 
     private fun showSettingsDialog() {
+        Log.d(TAG, "showSettingsDialog: show settings dialog")
         AlertDialog.Builder(requireContext())
             .setTitle(resources.getString(R.string.permission_settings_title))
             .setMessage(resources.getString(R.string.permission_settings_body))
@@ -151,12 +167,14 @@ class AllSongsFragment : Fragment() {
     }
 
     private fun checkPermissions() {
+        Log.d(TAG, "checkPermissions: ")
         binding.apply {
             when {
                 ContextCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 ) == PackageManager.PERMISSION_GRANTED -> {
+                    Log.d(TAG, "checkPermissions: permission granted")
                     permissionExplanationBtn.visibility = View.GONE
                     permissionExplanationTv.visibility = View.GONE
                     emptyTv.visibility = View.GONE
@@ -171,6 +189,10 @@ class AllSongsFragment : Fragment() {
                 }
 
                 else -> {
+                    Log.d(
+                        TAG,
+                        "checkPermissions: permission not granted"
+                    )
                     permissionExplanationTv.visibility = View.VISIBLE
                     permissionExplanationBtn.visibility = View.VISIBLE
                     permissionExplanationBtn.setOnClickListener {
